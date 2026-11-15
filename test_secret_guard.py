@@ -499,6 +499,33 @@ class TestHookInstall(unittest.TestCase):
         self.assertEqual(removed_path, hook_path)
         self.assertFalse(os.path.exists(hook_path))
 
+    def test_installed_hook_allows_clean_commit(self):
+        root = self.make_repo()
+        sg.install_hook(cwd=root)
+        with open(os.path.join(root, "clean.txt"), "w", encoding="utf-8") as handle:
+            handle.write("hello\n")
+
+        env = os.environ.copy()
+        env.update(
+            {
+                "GIT_AUTHOR_NAME": "Test",
+                "GIT_AUTHOR_EMAIL": "test@example.com",
+                "GIT_COMMITTER_NAME": "Test",
+                "GIT_COMMITTER_EMAIL": "test@example.com",
+                "NVIDIA_API_KEY": "",
+            }
+        )
+        subprocess.run(["git", "add", "clean.txt"], cwd=root, check=True, env=env)
+        result = subprocess.run(
+            ["git", "commit", "-m", "test hook"],
+            cwd=root,
+            check=False,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_install_refuses_to_clobber_unknown_hook(self):
         root = self.make_repo()
         hooks_dir = os.path.join(root, ".git", "hooks")

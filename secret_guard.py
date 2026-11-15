@@ -702,6 +702,9 @@ def install_hook(force=False, cwd=None):
 
     script = os.path.realpath(__file__)
     python = sys.executable or "python3"
+    if os.name == "nt":
+        script = script.replace("\\", "/")
+        python = python.replace("\\", "/")
     content = (
         "#!/bin/sh\n"
         + HOOK_MARKER

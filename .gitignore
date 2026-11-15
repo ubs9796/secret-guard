@@ -1,9 +1,12 @@
 __pycache__/
 *.py[cod]
 *.bak
+*.egg-info/
+.eggs/
 .venv/
 venv/
 .env
+.coverage
 dist/
 build/
 .pytest_cache/

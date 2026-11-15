@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "secret-guard"
+version = "1.0.0"
+description = "Fast local secret scanner and NVIDIA NIM-powered commit helper."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "bsloopstudio" }]
+keywords = ["git", "pre-commit", "secrets", "security", "nvidia", "nim"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Version Control :: Git",
+]
+dependencies = []
+
+[project.scripts]
+secret-guard = "secret_guard:main"
+
+[project.urls]
+Homepage = "https://github.com/ubs9796/secret-guard"
+Issues = "https://github.com/ubs9796/secret-guard/issues"
+
+[tool.setuptools]
+py-modules = ["secret_guard"]
+# Kept for setuptools versions that still support Python 3.8.
+license-files = ["LICENSE"]

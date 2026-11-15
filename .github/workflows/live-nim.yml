@@ -1,0 +1,46 @@
+name: Live NIM smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check for NVIDIA_API_KEY
+        id: check
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          if [ -z "${NVIDIA_API_KEY}" ]; then
+            echo "NVIDIA_API_KEY is not configured; skipping live test."
+            echo "skip=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "skip=false" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Call NVIDIA NIM
+        if: steps.check.outputs.skip != 'true'
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          import secret_guard as sg
+
+          content, error = sg.nim_chat(
+              [{"role": "user", "content": "Reply with exactly: OK"}],
+              api_key=os.environ["NVIDIA_API_KEY"],
+              timeout=30.0,
+          )
+          if error:
+              raise SystemExit("NIM error: " + error)
+          print("NIM response:", (content or "")[:100])
+          PY

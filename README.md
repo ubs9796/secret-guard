@@ -1,5 +1,7 @@
 # secret-guard
 
+[![CI](https://github.com/ubs9796/secret-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/ubs9796/secret-guard/actions/workflows/ci.yml)
+
 A fast, zero-dependency Python 3 CLI that helps stop secrets before they enter
 Git history and drafts [Conventional Commit](https://www.conventionalcommits.org/)
 messages with the NVIDIA NIM API.
@@ -9,9 +11,8 @@ It works in two stages:
 1. **Local guard (<100 ms, offline).** Scans `git diff --cached` with regexes
    and high-entropy detection. If it finds a likely secret, it blocks the commit
    and prints the file, line, rule, and a safe fingerprint. No network call is
-   made. On the development machine used for this build, a synthetic diff with
-   2,000 added lines scanned in about 57 ms; typical staged diffs are much
-   smaller.
+   made. A synthetic diff with 2,000 added lines scans in about 57 ms on the
+   reference machine; typical staged diffs are much smaller.
 2. **NIM review (optional, best effort).** If the local scan is clean and
    `NVIDIA_API_KEY` is set, it sends a **sanitized** diff to the NVIDIA NIM API
    with a strict 5-second timeout. The model looks for subtle security issues
@@ -29,17 +30,37 @@ daemons.
 
 ## Install
 
+Clone the repository and install the CLI:
+
 ```bash
+git clone https://github.com/ubs9796/secret-guard.git
 cd secret-guard
 bash install.sh
 ```
 
-The installer symlinks `secret_guard.py` to `~/.local/bin/secret-guard` and
-makes it executable. If `~/.local/bin` is not on your `PATH`, add it:
+`install.sh` is for Linux and macOS. It symlinks `secret_guard.py` to
+`~/.local/bin/secret-guard` and makes it executable. If `~/.local/bin` is not
+on your `PATH`, add it:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
+
+On Windows, use WSL or install the Python package with `pipx` (recommended) or
+`pip`:
+
+```bash
+python -m pip install --user .
+# or, for an isolated install straight from GitHub:
+pipx install git+https://github.com/ubs9796/secret-guard.git
+```
+
+## Platform support
+
+- Linux and macOS: `bash install.sh`, or `pipx install .`
+- Windows: Python 3.8+ with Git for Windows, or WSL. The pre-commit hook is a
+  POSIX shell script that Git for Windows executes.
+- CI tests Python 3.8–3.13 on Linux, plus Python 3.12 on macOS and Windows.
 
 Install the Git hook in any repository:
 
@@ -171,8 +192,10 @@ python3 -m unittest -v
 ```
 
 The suite covers local detection, allowlisting, sanitization, mocked NIM
-success/timeout/HTTP failures, and hook install/uninstall. It does not use the
-network or a real API key.
+success/timeout/HTTP failures, and hook install/uninstall including a real
+clean commit through the installed hook. It does not use the network or a real
+API key. CI runs the same suite on Python 3.8–3.13 on Linux and Python 3.12 on
+macOS and Windows.
 
 ## Security and limitations
 
@@ -180,6 +203,9 @@ network or a real API key.
   NVIDIA's API. It contains code changes, but detected secrets are replaced and
   sensitive files are omitted. If sending source code to a third party is not
   acceptable, unset `NVIDIA_API_KEY` or use `secret-guard scan --no-ai`.
+- Stage 2 is covered by mocked tests. Maintainers can run the manual **Live NIM
+  smoke test** workflow after adding an `NVIDIA_API_KEY` repository secret; it
+  verifies the live API and configured model.
 - Regex detection is useful but not exhaustive. Treat a clean scan as a safety
   net, not a guarantee.
 - The NIM review is advisory and model-dependent. A `VERDICT: BLOCK` response
@@ -227,10 +253,15 @@ SOFTWARE.
 
 ## Distribution
 
-`secret_guard.py` is the entire runtime. To distribute it, copy that file (and
-optionally `install.sh`) into a repository, a release archive, or an internal
-package. No dependency resolution is needed. Keep the executable bit set:
+`secret_guard.py` is the entire runtime. You can copy that file (and optionally
+`install.sh`) into a repository, a release archive, or an internal package, or
+install the Python package with `pip`/`pipx`. No dependency resolution is
+needed. Keep the executable bit set:
 
 ```bash
 chmod 755 secret_guard.py
 ```
+
+## Releases
+
+Version tags follow semantic versioning. The current release is `v1.0.0`.
