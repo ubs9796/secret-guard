@@ -39,7 +39,7 @@ jobs:
           cd "$tmp"
           git init -q
           git add -A
-          env -u NVIDIA_API_KEY python "$GITHUB_WORKSPACE/secret_guard.py" scan --no-ai
+          env -u NVIDIA_API_KEY python3 secret_guard.py scan --no-ai
 
   cross-platform:
     name: Python 3.12 on ${{ matrix.os }}
